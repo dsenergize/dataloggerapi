@@ -3,7 +3,7 @@ import { loggerQueue, debugQueue } from '../../../shared/config/bullmq.js';
 // Define these options once at the top of the file
 const jobOptions = {
   removeOnComplete: {
-    count: 1000, // Keep the last 1000 completed jobs
+    count: 10, // Keep the last 1000 completed jobs
     age: 60 * 60 * 24, // Keep jobs for a max of 24 hours
   },
   removeOnFail: {
