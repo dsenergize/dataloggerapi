@@ -42,7 +42,7 @@ async function processPacket(msg) {
     await loggerQueue.add(
       'logger-packets',
       { packet: msg },
-      { jobId: `${imei}_${sid}_${dtm || time}`, jobOptions }
+      { jobId: `${imei}_${sid}_${dtm || time}`, ...jobOptions }
       
     );
     return { success: true, type: 'data' };
