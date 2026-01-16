@@ -12,9 +12,12 @@ const jobOptions = {
 };
 function parseMessages(raw) {
   const trimmedRaw = raw.trim();
-  if (trimmedRaw.startsWith('[')) return JSON.parse(trimmedRaw);
-  if (trimmedRaw.includes('}{')) return trimmedRaw.replace(/}\s*{/g, '}\n{').split('\n').map(str => JSON.parse(str));
-  return [JSON.parse(trimmedRaw)];
+  // Remove trailing commas before closing braces/brackets (invalid JSON)
+  const sanitized = trimmedRaw.replace(/,(\s*[}\]])/g, '$1');
+  
+  if (sanitized.startsWith('[')) return JSON.parse(sanitized);
+  if (sanitized.includes('}{')) return sanitized.replace(/}\s*{/g, '}\n{').split('\n').map(str => JSON.parse(str));
+  return [JSON.parse(sanitized)];
 }
 
 async function processPacket(msg) {
