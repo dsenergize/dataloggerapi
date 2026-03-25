@@ -1,4 +1,9 @@
-import { loggerQueue, debugQueue } from '../../../shared/config/bullmq.js';
+import { loggerQueue, debugQueue, redisConnection } from '../../../shared/config/bullmq.js';
+import { Redis } from 'ioredis';
+
+// Instantiate Redis client specifically for generic cache and command queuing
+const redisClient = new Redis(redisConnection.connection);
+
 // --- DEFINE YOUR CLEANUP OPTIONS ---
 // Define these options once at the top of the file
 const jobOptions = {
@@ -61,6 +66,20 @@ export async function handleIngestion(rawBody) {
     return Promise.all(messages.map(processPacket));
   } catch (error) {
     console.error('Failed to parse incoming message body:', rawBody);
+    throw error;
+  }
+}
+
+export async function queueDeviceCommand(imei, command) {
+  try {
+    const cacheKey = `device_commands:${imei}`;
+    // Push the new command to the right of the list (queueing it)
+    await redisClient.rpush(cacheKey, command);
+    // Optional: Set a TTL on the key so it doesn't linger indefinitely if the device goes offline (e.g. 7 days: 604800s)
+    await redisClient.expire(cacheKey, 604800);
+    return { success: true };
+  } catch (error) {
+    console.error(`Failed to queue command for imei ${imei}:`, error);
     throw error;
   }
 }
